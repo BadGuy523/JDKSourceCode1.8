@@ -20,7 +20,9 @@ public class AtomicInteger extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 6214790243416807050L;
 
     // setup to use Unsafe.compareAndSwapInt for updates
+    // 获取并操作内存的数据
     private static final Unsafe unsafe = Unsafe.getUnsafe();
+    // 存储value在AtomicInteger中的偏移量
     private static final long valueOffset;
 
     static {
@@ -30,6 +32,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
         } catch (Exception ex) { throw new Error(ex); }
     }
 
+    // 存储AtomicInteger的int值，该属性需要借助volatile关键字保证其在线程间是可见的
     private volatile int value;
 
     /**
@@ -144,6 +147,7 @@ public class AtomicInteger extends Number implements java.io.Serializable {
 
     /**
      * Atomically increments by one the current value.
+     * 自增方法
      *
      * @return the updated value
      */
