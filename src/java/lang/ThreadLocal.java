@@ -225,7 +225,6 @@ public class ThreadLocal<T> {
      * 类似HashMap，进行元素存取时，要清理遇到的垃圾值，且合并原先紧密相邻的元素（除去垃圾值会造成新空槽）
      */
     static class ThreadLocalMap {
-
         /**
          * 键值对实体的存储结构
          */
@@ -441,19 +440,11 @@ public class ThreadLocal<T> {
         }
 
         /**
-         * Replace a stale entry encountered during a set operation
-         * with an entry for the specified key.  The value passed in
-         * the value parameter is stored in the entry, whether or not
-         * an entry already exists for the specified key.
+         * 替换脏的不干净的entry
          *
-         * As a side effect, this method expunges all stale entries in the
-         * "run" containing the stale entry.  (A run is a sequence of entries
-         * between two null slots.)
-         *
-         * @param  key the key
-         * @param  value the value to be associated with key
-         * @param  staleSlot index of the first stale entry encountered while
-         *         searching for key.
+         * @param key
+         * @param value
+         * @param staleSlot
          */
         private void replaceStaleEntry(ThreadLocal<?> key, Object value,
                                        int staleSlot) {
@@ -461,10 +452,7 @@ public class ThreadLocal<T> {
             int len = tab.length;
             Entry e;
 
-            // Back up to check for prior stale entry in current run.
-            // We clean out whole runs at a time to avoid continual
-            // incremental rehashing due to garbage collector freeing
-            // up refs in bunches (i.e., whenever the collector runs).
+            //向前扫描，查找最前一个无效的slot
             int slotToExpunge = staleSlot;
             for (int i = prevIndex(staleSlot, len);
                  (e = tab[i]) != null;
@@ -472,43 +460,35 @@ public class ThreadLocal<T> {
                 if (e.get() == null)
                     slotToExpunge = i;
 
-            // Find either the key or trailing null slot of run, whichever
-            // occurs first
+            //从i开始往后一直遍历到数组最后一个Entry（线性探索）
             for (int i = nextIndex(staleSlot, len);
                  (e = tab[i]) != null;
                  i = nextIndex(i, len)) {
                 ThreadLocal<?> k = e.get();
 
-                // If we find key, then we need to swap it
-                // with the stale entry to maintain hash table order.
-                // The newly stale slot, or any other stale slot
-                // encountered above it, can then be sent to expungeStaleEntry
-                // to remove or rehash all of the other entries in run.
+                //找到匹配的key以后
                 if (k == key) {
+                    //更新对应slot的value值
                     e.value = value;
-
+                    //与无效的sloat进行交换
                     tab[i] = tab[staleSlot];
                     tab[staleSlot] = e;
-
-                    // Start expunge at preceding stale entry if it exists
+                    //如果最早的一个无效的slot和当前的staleSlot相等，则从i作为清理的起点
                     if (slotToExpunge == staleSlot)
                         slotToExpunge = i;
+                    //从slotToExpunge开始做一次连续的清理
                     cleanSomeSlots(expungeStaleEntry(slotToExpunge), len);
                     return;
                 }
 
-                // If we didn't find stale entry on backward scan, the
-                // first stale entry seen while scanning for key is the
-                // first still present in the run.
+                //如果当前的slot已经无效，并且向前扫描过程中没有无效slot，则更新slotToExpunge为当前位置
                 if (k == null && slotToExpunge == staleSlot)
                     slotToExpunge = i;
             }
-
-            // If key not found, put new entry in stale slot
+            //如果key对应的value在entry中不存在，则直接放一个新的entry
             tab[staleSlot].value = null;
             tab[staleSlot] = new Entry(key, value);
-
-            // If there are any other stale entries in run, expunge them
+            //如果有任何一个无效的slot，则做一次清理
             if (slotToExpunge != staleSlot)
                 cleanSomeSlots(expungeStaleEntry(slotToExpunge), len);
         }
