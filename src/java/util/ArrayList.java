@@ -137,12 +137,7 @@ public class ArrayList<E> extends AbstractList<E>
      */
     public void ensureCapacity(int minCapacity) {
         //如果数组为空，容量预取0，否则去默认值(10)
-        int minExpand = (elementData != DEFAULTCAPACITY_EMPTY_ELEMENTDATA)
-                // any size if not default element table
-                ? 0
-                // larger than default for default empty table. It's already
-                // supposed to be at default size.
-                : DEFAULT_CAPACITY;
+        int minExpand = (elementData != DEFAULTCAPACITY_EMPTY_ELEMENTDATA) ? 0 : DEFAULT_CAPACITY;
         //若参数大于预设的容量，在使用该参数进一步设置数组容量
         if (minCapacity > minExpand) {
             ensureExplicitCapacity(minCapacity);
@@ -389,7 +384,7 @@ public class ArrayList<E> extends AbstractList<E>
     public boolean add(E e) {
         // 扩容
         ensureCapacityInternal(size + 1);  // Increments modCount!!
-        // 将e赋值给elementData的size+1的位置
+        // 将e赋值给elementData的size的位置后size自加1
         elementData[size++] = e;
         return true;
     }
